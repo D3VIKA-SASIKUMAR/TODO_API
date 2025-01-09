@@ -34,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: Center(
         child: Column(
           children: [
-            // Corrected path for the asset
+           
             Image.asset(
               'images/todo_api_splashscreen.png',
               height: 800,
