@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _title.clear();
         _description.clear();
 
-        await fetchData(); // Fetch updated data after posting
+        await fetchData(); 
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to post data: ${response.body}')),
