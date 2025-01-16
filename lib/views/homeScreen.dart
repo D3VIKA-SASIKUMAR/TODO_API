@@ -13,58 +13,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final _description = TextEditingController();
   List<dynamic> todo = [];
   bool isLoading = true;
-<<<<<<< HEAD
-=======
-  Future<void> _submitData() async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://crud-backend-6t6r.onrender.com/api/post'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'title': _title.text,
-          'description': _description.text,
-        }),
-      );
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data posted successfully!')),
-        );
-
-        _title.clear();
-        _description.clear();
-
-        await fetchData(); 
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to post data: ${response.body}')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
-  }
-
-  Future<void> fetchData() async {
-    try {
-      final response = await http
-          .get(Uri.parse('https://crud-backend-6t6r.onrender.com/api/get'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _works = data;
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (e) {
-      print('Error fetching products: $e');
-    }
-  }
->>>>>>> 198114502b651cadf626ceaf5a21c930d735e775
 
   @override
   void initState() {
