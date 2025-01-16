@@ -1,7 +1,5 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:todo_api/services.dart/services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,127 +11,88 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final _title = TextEditingController();
   final _description = TextEditingController();
-  List<dynamic> _works = [];
+  List<dynamic> todo = [];
   bool isLoading = true;
-  Future<void> _submitData() async {
-    try {
-      final response = await http.post(
-        Uri.parse('https://crud-backend-6t6r.onrender.com/api/post'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'title': _title.text,
-          'description': _description.text,
-        }),
-      );
-
-      if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data posted successfully!')),
-        );
-
-        _title.clear();
-        _description.clear();
-
-        await fetchData(); // Fetch updated data after posting
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to post data: ${response.body}')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
-  }
-
-  Future<void> fetchData() async {
-    try {
-      final response = await http
-          .get(Uri.parse('https://crud-backend-6t6r.onrender.com/api/get'));
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _works = data;
-          isLoading = false;
-        });
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (e) {
-      print('Error fetching products: $e');
-    }
-  }
 
   @override
   void initState() {
     super.initState();
-    fetchData();
+    loadTodos();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 88, 87, 132),
       body: isLoading
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : _works.isEmpty
+          : todo.isEmpty
               ? const Center(
                   child: Text(
-                    'No data found.',
+                    'No data fouend.',
                     style: TextStyle(fontSize: 18),
                   ),
                 )
               : ListView.builder(
-                  itemCount: _works.length,
+                  itemCount: todo.length,
                   itemBuilder: (context, index) {
-                    final todo = _works[index];
+                    final todos = todo[index];
                     return Card(
-                      color: const Color.fromARGB(255, 214, 213, 213),
-                      margin: const EdgeInsets.symmetric(
-                        vertical: 5,
-                        horizontal: 10,
-                      ),
-                      child: ListTile(
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              todo['title'] ?? 'No Title',
-                              style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              todo['description'] ?? 'No Description',
-                              style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color.fromARGB(255, 71, 70, 70)),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                        color: const Color.fromARGB(255, 48, 13, 152),
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 15,
                         ),
-                        trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.end,
+                        child: ListTile(
+                          minTileHeight: 100,
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Icon(
-                                Icons.delete,
-                                size: 20,
+                              Text(
+                                todos['title'] ?? 'No Title Found',
+                                style: const TextStyle(
+                                    color: Color.fromARGB(255, 255, 255, 255),
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold),
                               ),
-                              SizedBox(
-                                height: 10,
+                              const SizedBox(height: 4),
+                              Text(
+                                todos['description'] ?? 'No Description',
+                                style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color.fromARGB(255, 255, 255, 255)),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              Icon(
-                                Icons.edit,
-                                size: 20,
-                              )
-                            ]),
-                      ),
-                    );
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                ),
+                                onPressed: () {
+                                  _showAlertDialougeBox(todos['_id']);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                ),
+                                onPressed: () {
+                                  __editTodo(todos['_id'], todos['title'],
+                                      todos['description']);
+                                },
+                              ),
+                            ],
+                          ),
+                        ));
                   }),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Color.fromARGB(255, 0, 74, 173),
@@ -164,15 +123,20 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               actions: [
                 TextButton(
+                  style: TextButton.styleFrom(
+                      foregroundColor: const Color.fromARGB(255, 0, 0, 0)),
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 0, 74, 173)),
                   onPressed: () {
                     Navigator.pop(context);
-                    _submitData();
+                    _addTodo();
                   },
-                  child: const Text('Done'),
+                  child:
+                      const Text('Done', style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -181,5 +145,125 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+
+  void __editTodo(String id, String title, String desc) {
+    _title.text = title;
+    _description.text = desc;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Update Task'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _title,
+              decoration: const InputDecoration(
+                labelText: 'Title',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _description,
+              decoration: const InputDecoration(
+                labelText: 'Description',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 0, 74, 173)),
+            onPressed: () {
+              Navigator.pop(context);
+              _updateTodo(id, _title.text, _description.text);
+            },
+            child: const Text('Update', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAlertDialougeBox(String id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Do you want to delete this task?'),
+        content: Row(
+          children: const [
+            Text('Are you sure you want to delete this task?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _deleteTodo(id);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  Future<void> loadTodos() async {
+    try {
+      final loadedTodos = await TodoServices.getTodos();
+      setState(() {
+        todo = loadedTodos;
+        isLoading = false;
+      });
+    } catch (e) {
+      _showError("Failed to load todos");
+    }
+  }
+
+  Future<void> _addTodo() async {
+    // if (_todoController.text.isEmpty) return;
+
+    try {
+      await TodoServices.createTodo(_title.text, _description.text);
+      _title.clear();
+      _description.clear();
+      await loadTodos();
+    } catch (e) {
+      _showError('Failed to add todo');
+    }
+  }
+
+  Future<void> _updateTodo(String id, String title, String desc) async {
+    try {
+      await TodoServices.updatetodo(id, title, desc);
+      await loadTodos();
+    } catch (e) {
+      _showError("Failed to update todo");
+    }
+  }
+
+  Future<void> _deleteTodo(String id) async {
+    try {
+      await TodoServices.deleteTodo(id);
+      await loadTodos();
+    } catch (e) {
+      _showError("Failed to delete todo");
+    }
   }
 }

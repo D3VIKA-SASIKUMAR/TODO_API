@@ -2,13 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:todo_api/views/homeScreen.dart';
 
-void main() {
-  runApp(MaterialApp(
-    debugShowCheckedModeBanner: false,
-    home: SplashScreen(),
-  ));
-}
-
 class SplashScreen extends StatefulWidget {
   @override
   _SplashScreenState createState() => _SplashScreenState();
